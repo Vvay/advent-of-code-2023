@@ -9,35 +9,44 @@ def load_file():
 
   return content
 
-def extract_card_data(scratchcard):
-  _, game_record  = scratchcard.split(':')
-  card_data       = game_record.split('|')
-  card_numbers    = card_data[0].strip().split(' ')
-  card_numbers    = list(filter(None, card_numbers))
-  winning_numbers = card_data[1].strip().split(' ')
-  winning_numbers = list(filter(None, winning_numbers))
-
-  return (card_numbers, winning_numbers)
+def prepare_data(data_set):
+  result = []
+  for line in data_set:
+    destination_range_start, source_range_start, range_length = line.split(' ')
+    result.append((int(destination_range_start), int(source_range_start), int(range_length)))
+  return result
 
 def get_source_number(searched_value, data_set):
   for line in data_set:
-    destination_range_start, source_range_start, range_length = line.split(' ')
-    destination_range_start, source_range_start, range_length = int(destination_range_start), int(source_range_start), int(range_length)
-    if searched_value >= source_range_start and searched_value <= source_range_start + range_length:
-      return destination_range_start + searched_value - source_range_start
+    if searched_value >= line[1] and searched_value <= line[1] + line[2]:
+      return line[0] + searched_value - line[1]
 
   return searched_value
 
 def process_data(content):
   seeds = re.search('(seeds:(\s\d+)*)', content).group()[7:].split(' ')
   seeds = list(map(int, seeds))
+
   seed_to_soil            = re.search('(seed-to-soil map:(\n\d+\s\d+\s\d+)*)',            content).group().splitlines()[1:]
+  seed_to_soil            = prepare_data(seed_to_soil)
+
   soil_to_fertilizer      = re.search('(soil-to-fertilizer map:(\n\d+\s\d+\s\d+)*)',      content).group().splitlines()[1:]
+  soil_to_fertilizer      = prepare_data(soil_to_fertilizer)
+
   fertilizer_to_water     = re.search('(fertilizer-to-water map:(\n\d+\s\d+\s\d+)*)',     content).group().splitlines()[1:]
+  fertilizer_to_water     = prepare_data(fertilizer_to_water)
+
   water_to_light          = re.search('(water-to-light map:(\n\d+\s\d+\s\d+)*)',          content).group().splitlines()[1:]
+  water_to_light          = prepare_data(water_to_light)
+
   light_to_temperature    = re.search('(light-to-temperature map:(\n\d+\s\d+\s\d+)*)',    content).group().splitlines()[1:]
+  light_to_temperature    = prepare_data(light_to_temperature)
+
   temperature_to_humidity = re.search('(temperature-to-humidity map:(\n\d+\s\d+\s\d+)*)', content).group().splitlines()[1:]
+  temperature_to_humidity = prepare_data(temperature_to_humidity)
+
   humidity_to_location    = re.search('(humidity-to-location map:(\n\d+\s\d+\s\d+)*)',    content).group().splitlines()[1:]
+  humidity_to_location    = prepare_data(humidity_to_location)
 
   locations = []
   for seed in seeds:
