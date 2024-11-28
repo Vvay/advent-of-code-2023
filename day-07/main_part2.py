@@ -1,3 +1,4 @@
+from pathlib import PureWindowsPath
 import math
 
 FILENAME = 'data.txt'
@@ -23,15 +24,35 @@ def load_input():
 def process_joker(hand):
   hand_temp = hand
   hand_temp = hand_temp.replace('J', '')
+
   if len(hand_temp) == 0:
     return 'AAAAA'
 
-  hand_type = get_hand_type(hand):
+  char_count = count_hand_characters(hand_temp)
+  joker = 'J'
 
+  if 4 in char_count.values():
+    joker = list(char_count.keys())[0]
 
-  hand_temp = ''.join(sorted(hand_temp, key=lambda word: [CARD_LABELS.index(c) for c in word], reverse = True))
-  joker = hand_temp[0]
+  elif 3 in char_count.values():
+    for char in hand_temp:
+      if hand_temp.count(char) == 3:
+        joker = char
 
+  elif 2 in char_count.values():
+    twos = [key for key, value in char_count.items() if value == 2]
+    if len(twos) == 2:
+      if CARD_LABELS.index(twos[0]) > CARD_LABELS.index(twos[1]):
+        joker = twos[0]
+      else:
+        joker = twos[1]
+    else:
+      joker = twos[0]
+
+  else: 
+    hand_temp = ''.join(sorted(hand_temp, key=lambda word: [CARD_LABELS.index(c) for c in word], reverse = True))
+    joker = hand_temp[0]
+  
   return hand.replace('J', joker)
 
 def count_hand_characters(hand):
@@ -40,7 +61,7 @@ def count_hand_characters(hand):
   for char in hand:
     char_count[char] = hand.count(char)
 
-  return sorted(char_count.values(), reverse=True)
+  return char_count
 
 def get_hand_type(hand):
   char_count = count_hand_characters(hand)
@@ -70,8 +91,11 @@ def sort_hands_by_type(input_data):
 
   for line in input_data:
     hand = line.split(' ')
-    hand[0] = process_joker(hand[0])
-    result[get_hand_type(hand[0])].append(hand)
+    n_hand = hand[0]
+    if 'J' in hand[0]:
+      n_hand = process_joker(hand[0])
+
+    result[get_hand_type(n_hand)].append(hand)
 
   return result
 
@@ -87,14 +111,13 @@ def get_hands_in_order(hands):
 
     hands[hand_type] = sort_hands_by_strength(hands[hand_type])
     result.extend(hands[hand_type])
-  
+
   return result
 
 def process_camel_cards(input_data):
   hands   = sort_hands_by_type(input_data)
-  print(hands)
   result  = get_hands_in_order(hands)
-  
+
   sum = 0
   for i in range(len(result)):
     sum = sum + (int(result[i][1]) * (i + 1))
