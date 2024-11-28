@@ -21,40 +21,6 @@ def load_input():
 
   return content.splitlines()
 
-def process_joker(hand):
-  hand_temp = hand
-  hand_temp = hand_temp.replace('J', '')
-
-  if len(hand_temp) == 0:
-    return 'AAAAA'
-
-  char_count = count_hand_characters(hand_temp)
-  joker = 'J'
-
-  if 4 in char_count.values():
-    joker = list(char_count.keys())[0]
-
-  elif 3 in char_count.values():
-    for char in hand_temp:
-      if hand_temp.count(char) == 3:
-        joker = char
-
-  elif 2 in char_count.values():
-    twos = [key for key, value in char_count.items() if value == 2]
-    if len(twos) == 2:
-      if CARD_LABELS.index(twos[0]) > CARD_LABELS.index(twos[1]):
-        joker = twos[0]
-      else:
-        joker = twos[1]
-    else:
-      joker = twos[0]
-
-  else: 
-    hand_temp = ''.join(sorted(hand_temp, key=lambda word: [CARD_LABELS.index(c) for c in word], reverse = True))
-    joker = hand_temp[0]
-  
-  return hand.replace('J', joker)
-
 def count_hand_characters(hand):
   char_count = {}
 
@@ -64,24 +30,46 @@ def count_hand_characters(hand):
   return char_count
 
 def get_hand_type(hand):
-  char_count = count_hand_characters(hand)
+  joker_count = hand.count('J')
+  char_count  = count_hand_characters(hand)
 
   if 5 in char_count.values():
     return FIVE_OF_A_KIND
 
   if 4 in char_count.values():
+    if joker_count > 0:
+      return FIVE_OF_A_KIND
+
     return FOUR_OF_A_KIND
 
   if 3 in char_count.values() and 2 in char_count.values():
+    if joker_count > 1:
+      return FIVE_OF_A_KIND
+
     return FULL_HOUSE
 
   if 3 in char_count.values():
+    if joker_count > 0:
+      return FOUR_OF_A_KIND
+
     return THREE_OF_A_KIND
 
   if 2 in char_count.values() and len(char_count) == 3:
+    if joker_count == 1:
+      return FULL_HOUSE
+
+    elif joker_count == 2:
+      return FOUR_OF_A_KIND
+
     return TWO_PAIR
 
   if 2 in char_count.values():
+    if joker_count > 0:
+      return THREE_OF_A_KIND
+
+    return ONE_PAIR
+
+  if joker_count > 0:
     return ONE_PAIR
 
   return HIGH_CARD
@@ -91,11 +79,7 @@ def sort_hands_by_type(input_data):
 
   for line in input_data:
     hand = line.split(' ')
-    n_hand = hand[0]
-    if 'J' in hand[0]:
-      n_hand = process_joker(hand[0])
-
-    result[get_hand_type(n_hand)].append(hand)
+    result[get_hand_type(hand[0])].append(hand)
 
   return result
 
