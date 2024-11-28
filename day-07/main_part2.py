@@ -1,4 +1,3 @@
-from pathlib import PureWindowsPath
 import math
 
 FILENAME = 'data.txt'
