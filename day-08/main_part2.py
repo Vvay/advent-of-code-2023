@@ -20,33 +20,34 @@ def prepare_nodes(nodes):
 
   return nodes_dict
 
-def find_a_way(input_data):
-  steps = input_data[0]
-  steps = steps.replace('R', '1').replace('L', '0')
-  steps = list(steps)
-  steps = [int(step) for step in steps]
-  nof_steps = len(steps)
-
-  nodes   = prepare_nodes(input_data[2:])
-  last_nodes = [x for x in nodes if x[2]== 'A']
-  print(last_nodes)
-
+def get_nof_steps(last_node, nodes, instructions, nof_instructions):
   not_finished = True
   i = 0
   while not_finished:
-    not_finished = False
+    last_node = nodes[last_node][instructions[i % nof_instructions]]
 
-    for j, last_node in enumerate(last_nodes):
-      last_nodes[j] = nodes[last_node][steps[i % nof_steps]]
-
-      if last_node[2] != 'Z':
-        not_finished = True
-
-    #print(i, ' ', last_nodes)
-
+    if last_node[2] == 'Z':
+      not_finished = False
     i += 1
 
   return i
+
+def find_a_way(input_data):
+  instructions = input_data[0]
+  instructions = instructions.replace('R', '1').replace('L', '0')
+  instructions = list(instructions)
+  instructions = [int(instruction) for instruction in instructions]
+  nof_instructions = len(instructions)
+
+  nodes   = prepare_nodes(input_data[2:])
+  last_nodes = [x for x in nodes if x[2]== 'A']
+  steps = []
+
+  for last_node in last_nodes:
+    steps.append(get_nof_steps(last_node, nodes, instructions, nof_instructions))
+
+  print(steps)
+  return math.lcm(*steps)
 
 def main():
   input_data  = load_input()
